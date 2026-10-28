@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>From Michaelis–Menten to Lineweaver–Burk</title>
+<style>
+:root{--bg:#fbfaf7;--card:#fff;--ink:#1f2328;--mute:#5d6570;--line:#d9d6cd;--acc:#2b6cb0;--comp:#d9480f;--non:#2f9e44;--ctl:#868e96;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--card:#1e2328;--ink:#e8e6e1;--mute:#a0a7b0;--line:#363c44;--acc:#74b0f0;--comp:#ff8a50;--non:#69db7c;--ctl:#868e96}}
+:root[data-theme="dark"]{--bg:#15181c;--card:#1e2328;--ink:#e8e6e1;--mute:#a0a7b0;--line:#363c44;--acc:#74b0f0;--comp:#ff8a50;--non:#69db7c;--ctl:#868e96}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 Georgia,"Times New Roman",serif}
+main{max-width:980px;margin:0 auto;padding:24px 18px 60px}
+h1{font-size:2rem;line-height:1.2;margin:.4em 0 .2em}
+h2{font-size:1.4rem;margin:2em 0 .5em;border-bottom:2px solid var(--line);padding-bottom:.2em}
+p.lead{color:var(--mute);margin-top:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:12px 0}
+.step{display:flex;gap:14px;align-items:flex-start}
+.n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--acc);color:var(--bg);display:flex;align-items:center;justify-content:center;font:700 .95rem system-ui,sans-serif}
+.step p{margin:0 0 .4em}
+.eq{font-size:1.2rem;text-align:center;margin:.5em 0;overflow-x:auto;white-space:nowrap}
+.f{display:inline-block;vertical-align:middle;text-align:center;margin:0 .2em}
+.f>span{display:block;padding:0 .2em}.f>span:first-child{border-bottom:1.5px solid currentColor}
+i.v{font-style:italic}sub{font-size:.7em}
+.hl{color:var(--acc);font-weight:700}
+.note{font:.9rem system-ui,sans-serif;color:var(--mute)}
+.ctl{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font:.95rem system-ui,sans-serif;margin-bottom:8px}
+.ctl label{display:flex;gap:6px;align-items:center}
+.seg button{font:inherit;padding:6px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.seg button:first-child{border-radius:8px 0 0 8px}.seg button:last-child{border-radius:0 8px 8px 0}
+.seg button.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+input[type=range]{width:200px;max-width:100%}
+.plots{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.plots{grid-template-columns:1fr}}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--mute);font:12px system-ui,sans-serif}
+svg .ax{stroke:var(--mute);stroke-width:1}
+svg .gr{stroke:var(--line);stroke-width:1}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font:.95rem/1.45 system-ui,sans-serif;min-width:520px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+.c1{color:var(--comp);font-weight:700}.c2{color:var(--non);font-weight:700}
+.key{display:flex;gap:16px;flex-wrap:wrap;font:.85rem system-ui,sans-serif;margin:4px 0}
+.key b{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:5px}
+.anim{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;font:.95rem system-ui,sans-serif}
+.anim button{font:inherit;padding:7px 14px;border:1px solid var(--acc);background:var(--card);color:var(--acc);border-radius:8px;cursor:pointer}
+.anim button.p{background:var(--acc);color:var(--bg)}
+.anim button:disabled{opacity:.4;cursor:default}
+.step{transition:opacity .6s ease,transform .6s ease,max-height .6s ease,margin .6s ease,padding .6s ease,box-shadow .6s ease;max-height:300px;overflow:hidden}
+.step.hid{opacity:0;transform:translateY(14px);max-height:0;margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0;border-width:0;pointer-events:none}
+.step.now{box-shadow:0 0 0 3px var(--acc)}
+@media (prefers-reduced-motion:reduce){.step{transition:none}}
+.step .eq{font-family:"Bradley Hand","Segoe Print","Chalkboard SE","Comic Sans MS",cursive}
+.step>div:last-child{position:relative;min-width:0;flex:1}
+.wr{display:inline-block}
+.pen{position:absolute;font-size:1.5rem;line-height:1;color:var(--acc);pointer-events:none;transform:translate(-4px,-85%) scaleX(-1)}
+s.x{text-decoration:none;position:relative;transition:color .5s}
+s.x::after{content:"";position:absolute;left:-3px;right:-3px;top:50%;height:2.5px;background:var(--comp);transform:rotate(-10deg) scaleX(0);transform-origin:left center;transition:transform .5s ease}
+s.x.on{color:var(--mute)}
+s.x.on::after{transform:rotate(-10deg) scaleX(1)}
+.dgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+.dgrid .eq{font-size:1.05rem}
+.dr{position:sticky;top:calc(12px + env(safe-area-inset-top,0px))}
+.dr .card{margin:0}
+@media(max-width:780px){.dgrid{grid-template-columns:1fr}.dr{position:static;order:-1}}
+</style>
+</head>
+<body>
+<main>
+<h1>From Michaelis–Menten to Lineweaver–Burk</h1>
+<p class="lead">How a curved enzyme-kinetics graph becomes a straight line, and how that line reveals the difference between competitive and noncompetitive inhibitors.</p>
+
+<h2>1 · Derivation: take the reciprocal</h2>
+<p>The Michaelis–Menten equation gives the initial velocity <i class="v">v</i><sub>0</sub> as a hyperbola in substrate concentration. Plotting <i class="v">v</i> against [S] gives a curve that levels off, so <i class="v">V</i><sub>max</sub> is hard to read accurately. Taking the reciprocal of both sides straightens it out.</p>
+
+<div class="dgrid"><div class="dl">
+<div class="anim"><button class="p" id="aPlay">▶ Play</button><button id="aNext">Next step</button><button id="aReset">Show all</button><span class="note" id="aCnt"></span></div>
+<div class="card step"><div class="n">1</div><div><p>Start with Michaelis–Menten:</p>
+<div class="eq"><i class="v">v</i> = <span class="f"><span><i class="v">V</i><sub>max</sub>[S]</span><span><i class="v">K</i><sub>m</sub> + [S]</span></span></div></div></div>
+
+<div class="card step"><div class="n">2</div><div><p>Flip both sides (take the reciprocal):</p>
+<div class="eq"><span class="f"><span>1</span><span><i class="v">v</i></span></span> = <span class="f"><span><i class="v">K</i><sub>m</sub> + [S]</span><span><i class="v">V</i><sub>max</sub>[S]</span></span></div></div></div>
+
+<div class="card step"><div class="n">3</div><div><p>Split the numerator into two fractions:</p>
+<div class="eq"><span class="f"><span>1</span><span><i class="v">v</i></span></span> = <span class="f"><span><i class="v">K</i><sub>m</sub></span><span><i class="v">V</i><sub>max</sub>[S]</span></span> + <span class="f"><span><s class="x">[S]</s></span><span><i class="v">V</i><sub>max</sub><s class="x">[S]</s></span></span></div>
+<p class="note" style="margin-top:.5em">Notice that [S] appears on the top and the bottom of the second fraction, so it cancels.</p></div></div>
+
+<div class="card step"><div class="n">4</div><div><p>Cancel [S] in the second term and write the first as a product:</p>
+<div class="eq"><span class="f"><span>1</span><span><i class="v">v</i></span></span> = <span class="f"><span><i class="v">K</i><sub>m</sub></span><span><i class="v">V</i><sub>max</sub></span></span> · <span class="f"><span>1</span><span>[S]</span></span> + <span class="f"><span>1</span><span><i class="v">V</i><sub>max</sub></span></span></div>
+<p>This matches <i>y = mx + b</i> with <i>y</i> = 1/<i class="v">v</i> and <i>x</i> = 1/[S].</p></div></div>
+
+</div>
+<aside class="dr"><div class="card"><svg id="p0" viewBox="0 0 400 320" role="img" aria-label="Chart that follows the derivation"></svg><p class="note" id="dcap" style="margin:4px 0 0"></p></div></aside></div>
+<div class="card">
+<p style="margin-top:0"><b>What you read off the line</b></p>
+<ul style="margin:0;padding-left:1.2em">
+<li><b>Slope</b> = <i class="v">K</i><sub>m</sub> / <i class="v">V</i><sub>max</sub></li>
+<li><b>y-intercept</b> = 1 / <i class="v">V</i><sub>max</sub></li>
+<li><b>x-intercept</b> = −1 / <i class="v">K</i><sub>m</sub> (set 1/<i class="v">v</i> = 0 and solve)</li>
+</ul></div>
+
+<h2>2 · Explore: add an inhibitor</h2>
+<p>Choose an inhibitor type and slide the amount of inhibitor. Both graphs show the same enzyme: the left is the original hyperbola, the right is the Lineweaver–Burk line. The gray line is the enzyme with no inhibitor (<i class="v">V</i><sub>max</sub> = 100, <i class="v">K</i><sub>m</sub> = 10).</p>
+<div class="card">
+<div class="ctl">
+<span class="seg" id="seg"><button data-m="comp" class="on">Competitive</button><button data-m="non">Noncompetitive</button><button data-m="both">Both</button></span>
+<label>Strength of the inhibitor ([I]/<i class="v">K</i><sub>i</sub>) <input type="range" id="ri" min="0" max="5" step="0.1" value="2"> <b id="rv">2.0</b></label>
+</div>
+<div class="key"><span><b style="background:var(--ctl)"></b>No inhibitor</span><span><b style="background:var(--comp)"></b>Competitive</span><span><b style="background:var(--non)"></b>Noncompetitive</span></div>
+<div class="plots"><svg id="p1" viewBox="0 0 400 320" role="img" aria-label="Michaelis–Menten curves"></svg><svg id="p2" viewBox="0 0 400 320" role="img" aria-label="Lineweaver–Burk lines"></svg></div>
+<p class="note"><b>Strength of the inhibitor ([I]/K<sub>i</sub>)</b> = inhibitor concentration divided by its dissociation constant (how tightly it binds the enzyme). 0 means no inhibitor; larger values mean stronger inhibition.</p>
+<p class="note" id="read"></p>
+</div>
+
+<h2>3 · Competitive vs. noncompetitive</h2>
+<div class="tw"><table>
+<tr><th></th><th class="c1">Competitive</th><th class="c2">Noncompetitive</th></tr>
+<tr><th>Where it binds</th><td>The active site, the same place as the substrate</td><td>A different site, on free enzyme or on the enzyme–substrate complex</td></tr>
+<tr><th>Effect on substrate binding</th><td>Substrate and inhibitor compete, so fewer enzymes have bound substrate</td><td>Substrate still binds, but the enzyme turns over more slowly</td></tr>
+<tr><th>Overcome by more substrate?</th><td>Yes, at high [S] the substrate outcompetes the inhibitor</td><td>No</td></tr>
+<tr><th><i class="v">V</i><sub>max</sub></th><td>Unchanged</td><td>Decreases</td></tr>
+<tr><th><i class="v">K</i><sub>m</sub></th><td>Increases (apparent affinity drops)</td><td>Unchanged</td></tr>
+<tr><th>Lineweaver–Burk lines</th><td>Cross on the <b>y-axis</b> (same 1/<i class="v">V</i><sub>max</sub>); slope increases</td><td>Cross on the <b>x-axis</b> (same −1/<i class="v">K</i><sub>m</sub>); slope and y-intercept increase</td></tr>
+</table></div>
+
+<div class="card">
+<p style="margin-top:0"><b>Why <i class="v">K</i><sub>m</sub> stays the same for a noncompetitive inhibitor</b></p>
+<p style="margin-bottom:0"><i class="v">K</i><sub>m</sub> reflects how well the enzyme binds its substrate, and only active enzyme can be measured for that. A noncompetitive inhibitor takes a fixed fraction of the enzyme out of action, but the enzyme that remains binds substrate just as well. Fewer working enzymes means a lower <i class="v">V</i><sub>max</sub>, not a different <i class="v">K</i><sub>m</sub>.</p>
+<div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px"><p style="margin:0 0 6px"><b>See it happen</b></p>
+<div class="ctl"><span class="seg" id="kseg"><button data-k="none">No inhibitor</button><button data-k="non" class="on">Noncompetitive</button><button data-k="comp">Competitive</button></span><label>[S] <input type="range" id="ks" min="1" max="60" step="1" value="10"> <b id="ksv">10</b></label><button id="kkm" style="font:inherit;padding:6px 12px;border:1px solid var(--acc);background:var(--card);color:var(--acc);border-radius:8px;cursor:pointer">Set [S] = K<sub>m</sub></button></div>
+<p class="note" style="margin:0 0 4px"><b>Close-up of one enzyme.</b> Blue = enzyme, orange = substrate, purple = inhibitor, green = product. Watch what the substrate and the inhibitor can and cannot do.</p>
+<svg id="kz" viewBox="0 0 400 200" role="img" aria-label="Close-up of one enzyme with substrate and inhibitor"></svg>
+<p id="kstat" aria-live="polite" style="margin:2px 0 12px;font:600 .95rem system-ui,sans-serif;min-height:2.6em"></p>
+<p class="note" style="margin:0 0 4px"><b>20 enzymes at once.</b> An orange dot means that enzyme is holding substrate. A working enzyme then converts it, and green product dots float away, just like the close-up above. Grey enzymes are switched off by an inhibitor, so they hold substrate but make no product.</p>
+<svg id="kg" viewBox="0 0 400 194" role="img" aria-label="Twenty enzymes binding substrate"></svg>
+<div id="kchips" style="display:flex;flex-wrap:wrap;gap:8px;font:.85rem system-ui,sans-serif;margin:6px 0"></div>
+<p class="note" id="kread" style="margin:6px 0 0"></p></div></div>
+
+</main>
+<script>
+(function(){
+var VM=100,KM=10,mode="comp",I=2;
+var NS="http://www.w3.org/2000/svg";
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(p,x,y,s,anc){var t=el("text",{x:x,y:y,"text-anchor":anc||"middle"},p);t.textContent=s;return t}
+var M={l:48,r:14,t:14,b:44},W=400,H=320,pw=W-M.l-M.r,ph=H-M.t-M.b;
+function frame(svg,x0,x1,y0,y1,xt,yt,xl,yl,fx,fy){
+ svg.innerHTML="";
+ var X=function(v){return M.l+(v-x0)/(x1-x0)*pw},Y=function(v){return M.t+ph-(v-y0)/(y1-y0)*ph};
+ xt.forEach(function(v){el("line",{x1:X(v),x2:X(v),y1:M.t,y2:M.t+ph,class:"gr"},svg);txt(svg,X(v),M.t+ph+16,fx(v))});
+ yt.forEach(function(v){el("line",{x1:M.l,x2:M.l+pw,y1:Y(v),y2:Y(v),class:"gr"},svg);txt(svg,M.l-6,Y(v)+4,fy(v),"end")});
+ if(x0<0)el("line",{x1:X(0),x2:X(0),y1:M.t,y2:M.t+ph,class:"ax"},svg);
+ if(y0<0)el("line",{x1:M.l,x2:M.l+pw,y1:Y(0),y2:Y(0),class:"ax"},svg);
+ el("rect",{x:M.l,y:M.t,width:pw,height:ph,fill:"none",class:"ax"},svg);
+ txt(svg,M.l+pw/2,H-6,xl);
+ var t=txt(svg,12,M.t+ph/2,yl);t.setAttribute("transform","rotate(-90 12 "+(M.t+ph/2)+")");
+ var id="c"+svg.id;var cp=el("clipPath",{id:id},svg);el("rect",{x:M.l,y:M.t,width:pw,height:ph},cp);
+ var g=el("g",{"clip-path":"url(#"+id+")"},svg);
+ return{X:X,Y:Y,g:g};
+}
+function params(m){var a=1+I;return m==="comp"?{v:VM,k:KM*a}:{v:VM/a,k:KM}}
+function draw(){
+ var curves=[{c:"var(--ctl)",v:VM,k:KM,d:"5 4"}];
+ if(mode!=="non"){var p=params("comp");curves.push({c:"var(--comp)",v:p.v,k:p.k})}
+ if(mode!=="comp"){var q=params("non");curves.push({c:"var(--non)",v:q.v,k:q.k})}
+ // MM plot
+ var f=frame(document.getElementById("p1"),0,60,0,110,[0,20,40,60],[0,25,50,75,100],"[S]","v",String,String);
+ el("line",{x1:f.X(0),x2:f.X(60),y1:f.Y(VM),y2:f.Y(VM),stroke:"var(--ctl)","stroke-width":1,"stroke-dasharray":"2 4"},f.g);
+ curves.forEach(function(c){var d="";for(var s=0;s<=60;s+=1){d+=(s?"L":"M")+f.X(s)+" "+f.Y(c.v*s/(c.k+s))}
+  el("path",{d:d,fill:"none",stroke:c.c,"stroke-width":2.5,"stroke-dasharray":c.d||"0"},f.g)});
+ // LB plot
+ var x0=-0.2,x1=0.5,y0=-0.06,y1=0.4;
+ var g=frame(document.getElementById("p2"),x0,x1,y0,y1,[-0.1,0,0.1,0.2,0.3,0.4,0.5],[0,0.1,0.2,0.3,0.4],"1/[S]","1/v",function(v){return v.toFixed(1)},function(v){return v.toFixed(1)});
+ curves.forEach(function(c){var b=1/c.v,m=c.k/c.v;
+  el("line",{x1:g.X(x0),y1:g.Y(b+m*x0),x2:g.X(x1),y2:g.Y(b+m*x1),stroke:c.c,"stroke-width":2.5,"stroke-dasharray":c.d||"0"},g.g);
+  var xi=-1/c.k;el("circle",{cx:g.X(xi),cy:g.Y(0),r:4,fill:c.c},g.g);
+  el("circle",{cx:g.X(0),cy:g.Y(b),r:4,fill:c.c},g.g)});
+ var r="With no inhibitor: V\u2098\u2090\u2093 = 100, K\u2098 = 10. ";
+ if(mode!=="non"){var p=params("comp");r+="Competitive: V\u2098\u2090\u2093 = "+p.v.toFixed(0)+", K\u2098 = "+p.k.toFixed(1)+". "}
+ if(mode!=="comp"){var q=params("non");r+="Noncompetitive: V\u2098\u2090\u2093 = "+q.v.toFixed(1)+", K\u2098 = "+q.k.toFixed(1)+". "}
+ r+="Dots mark the intercepts on each axis.";
+ document.getElementById("read").textContent=r;
+ document.getElementById("rv").textContent=I.toFixed(1);
+}
+document.getElementById("ri").addEventListener("input",function(e){I=parseFloat(e.target.value);draw()});
+Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(b){b.addEventListener("click",function(){
+ mode=b.getAttribute("data-m");
+ Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(x){x.classList.toggle("on",x===b)});draw()})});
+draw();
+// derivation animation: worked out step by step, as if written by hand
+var RM=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+var st=Array.prototype.slice.call(document.querySelectorAll(".step")),done=st.length,tok=0,playing=false;
+var bP=document.getElementById("aPlay"),bN=document.getElementById("aNext"),bR=document.getElementById("aReset"),cn=document.getElementById("aCnt");
+var HID="inset(-15% 100% -15% 0)",SHW="inset(-15% 0% -15% 0)";
+st.forEach(function(s){var e=s.querySelector(".eq"),w=document.createElement("span");w.className="wr";while(e.firstChild)w.appendChild(e.firstChild);e.appendChild(w)});
+function each(l,f){Array.prototype.forEach.call(l,f)}
+function wait(ms){return new Promise(function(r){setTimeout(r,RM?30:ms)})}
+function label(k){cn.textContent=(k>=st.length&&!playing)?"All "+st.length+" steps shown":"Step "+k+" of "+st.length}
+function clear(s){each(s.querySelectorAll("p,.wr"),function(x){x.getAnimations().forEach(function(a){a.cancel()});x.style.clipPath=""});each(s.querySelectorAll(".pen"),function(x){x.remove()})}
+function drawD(k,an){
+ var svg=document.getElementById("p0"),f,g,cap=document.getElementById("dcap");
+ var pth=function(g,pts,f,col,dash){var d="";pts.forEach(function(p,i){d+=(i?"L":"M")+f.X(p[0])+" "+f.Y(p[1])});var e=el("path",{d:d,fill:"none",stroke:col,"stroke-width":2.5,pathLength:1,"stroke-dasharray":dash||1},g);if(an&&!RM&&!dash)e.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:1400,easing:"ease-out",fill:"both"})};
+ var dot=function(g,x,y,f,col){el("circle",{cx:f.X(x),cy:f.Y(y),r:4.5,fill:col},g)};
+ var dl=function(g,x1,y1,x2,y2,f){el("line",{x1:f.X(x1),y1:f.Y(y1),x2:f.X(x2),y2:f.Y(y2),stroke:"var(--ctl)","stroke-width":1.2,"stroke-dasharray":"4 4"},g)};
+ var pts=[],i,S;
+ if(k<=1){
+  f=frame(svg,0,60,0,110,[0,20,40,60],[0,25,50,75,100],"[S]","v",String,String);
+  if(k===1){for(S=0;S<=60;S+=1)pts.push([S,VM*S/(KM+S)]);
+   dl(f.g,0,VM,60,VM,f);dl(f.g,0,50,KM,50,f);dl(f.g,KM,50,KM,0,f);
+   pth(f.g,pts,f,"var(--acc)");dot(f.g,KM,50,f,"var(--comp)");
+   txt(svg,f.X(1)+4,f.Y(VM)-5,"Vmax","start");txt(svg,f.X(KM)+6,f.Y(0)-6,"Km","start");txt(svg,f.X(KM)+8,f.Y(50)-6,"\u00bd Vmax","start")}
+  cap.textContent=k===1?"Michaelis\u2013Menten: v rises and levels off at Vmax. Km is the [S] that gives half of Vmax.":"Press \u25b6 Play to watch the derivation, with the graph changing alongside.";
+ }else if(k===2){
+  f=frame(svg,0,60,0,0.25,[0,20,40,60],[0,0.1,0.2],"[S]","1/v",String,function(v){return v.toFixed(1)});
+  for(S=0.5;S<=60;S+=0.5)pts.push([S,(KM+S)/(VM*S)]);
+  pth(f.g,pts,f,"var(--acc)");
+  cap.textContent="Taking 1/v and plotting it against [S] is still a curve. Next we also flip [S].";
+ }else{
+  var x0=-0.15,x1=0.5,b=1/VM,m=KM/VM;
+  f=frame(svg,x0,x1,-0.01,0.07,[-0.1,0,0.1,0.2,0.3,0.4,0.5],[0,0.02,0.04,0.06],"1/[S]","1/v",function(v){return v.toFixed(1)},function(v){return v.toFixed(2)});
+  pth(f.g,[[k===4?x0:0,b+m*(k===4?x0:0)],[x1,b+m*x1]],f,"var(--acc)");
+  if(k===3){[2,3,4,5,7,10,15,25,50].forEach(function(s){dot(f.g,1/s,(KM+s)/(VM*s),f,"var(--acc)")});
+   cap.textContent="Plot 1/v against 1/[S] and the points fall on a straight line."}
+  else{dot(f.g,0,b,f,"var(--comp)");dot(f.g,-1/KM,0,f,"var(--comp)");
+   txt(svg,f.X(0)+8,f.Y(b)-8,"1/Vmax","start");txt(svg,f.X(-1/KM)+2,f.Y(0)-10,"\u22121/Km");txt(svg,f.X(0.2),f.Y(b+m*0.2)+22,"slope = Km/Vmax","start");
+   cap.textContent="Read the line: y-intercept = 1/Vmax, x-intercept = \u22121/Km, slope = Km/Vmax."}
+ }
+}
+function settle(n){drawD(n,false);st.forEach(function(s,i){clear(s);s.classList.toggle("hid",i>=n);s.classList.remove("now");each(s.querySelectorAll(".x"),function(x){x.classList.toggle("on",i<n)})});done=n;label(n)}
+function wipe(el,ms,pen){return new Promise(function(res){
+ if(RM){res();return}
+ var a=el.animate([{clipPath:HID},{clipPath:SHW}],{duration:ms,easing:"linear",fill:"both"}),pn=null;
+ if(pen){var par=el.offsetParent||el.parentNode,L=el.offsetLeft,W=el.offsetWidth;
+  pn=document.createElement("span");pn.className="pen";pn.textContent="✎";pn.style.top=(el.offsetTop+el.offsetHeight*0.6)+"px";par.appendChild(pn);
+  pn.animate([{left:L+"px"},{left:(L+W)+"px"}],{duration:ms,easing:"linear",fill:"both"})}
+ a.onfinish=function(){if(pn)pn.remove();res()};a.oncancel=function(){res()};
+})}
+async function doStep(i,t){
+ var s=st[i],ps=s.querySelectorAll("p"),w=s.querySelector(".wr"),xs=s.querySelectorAll(".x");
+ st.forEach(function(o){o.classList.remove("now")});
+ clear(s);each(xs,function(x){x.classList.remove("on")});
+ each(ps,function(p){p.style.clipPath=HID});w.style.clipPath=HID;
+ s.classList.remove("hid");s.classList.add("now");label(i+1);
+ await wait(700);if(t!==tok)return false;
+ await wipe(ps[0],1100);if(t!==tok)return false;
+ await wait(300);if(t!==tok)return false;
+ await wipe(w,2600,true);if(t!==tok)return false;
+ drawD(i+1,true);
+ if(xs.length){await wait(600);if(t!==tok)return false;each(xs,function(x){x.classList.add("on")});await wait(1000);if(t!==tok)return false}
+ for(var k=1;k<ps.length;k++){await wipe(ps[k],1100);if(t!==tok)return false}
+ return true}
+function pause(){tok++;playing=false;bP.textContent="▶ Play";settle(done)}
+async function play(){
+ if(playing){pause();return}
+ var t=++tok;settle(done>=st.length?0:done);playing=true;bP.textContent="❚❚ Pause";
+ for(var i=done;i<st.length;i++){
+  if(!(await doStep(i,t)))return;
+  done=i+1;await wait(900);if(t!==tok)return}
+ playing=false;bP.textContent="▶ Replay";label(done)}
+async function nextStep(){
+ tok++;var t=tok;playing=false;bP.textContent="▶ Play";
+ settle(done>=st.length?0:done);
+ var i=done;if(await doStep(i,t)){done=i+1;label(done)}}
+bP.addEventListener("click",play);
+bN.addEventListener("click",nextStep);
+bR.addEventListener("click",function(){tok++;playing=false;bP.textContent="▶ Play";settle(st.length)});
+settle(st.length);
+// why Km is unchanged: close-up of one enzyme + population of 20
+var km='non',ks=10,en=[],kg=document.getElementById('kg'),kz=document.getElementById('kz'),N=20,kfill,kval;
+var PUR='#9c36b5',GRN='#2f9e44',TR=RM?'':'transition:transform .8s ease,opacity .5s;';
+var zS,zI,zP1,zP2,zBody,zt=null,zi=0;
+function lab(t,x,y,a,b,c,d){txt(kz,x,y,t,'start');el('line',{x1:a,y1:b,x2:c,y2:d,stroke:'var(--mute)','stroke-width':1},kz)}
+zBody=el('circle',{cx:150,cy:112,r:46,fill:'var(--acc)',style:'transition:fill .5s'},kz);
+el('circle',{cx:150,cy:72,r:19,fill:'var(--card)'},kz);
+el('circle',{cx:196,cy:130,r:10,fill:'var(--card)'},kz);
+lab('Enzyme (E)',20,178,78,172,120,148);lab('Active site',14,96,74,92,134,78);lab('Separate site',250,178,246,174,204,138);
+el('circle',{cx:270,cy:20,r:6,fill:'var(--comp)'},kz);txt(kz,284,24,'Substrate (S)','start');
+el('rect',{x:264,y:34,width:12,height:12,rx:2,fill:PUR},kz);txt(kz,284,44,'Inhibitor (I)','start');
+el('circle',{cx:270,cy:64,r:5,fill:GRN},kz);txt(kz,284,68,'Product (P)','start');
+el('circle',{cx:270,cy:86,r:6,fill:'var(--acc)'},kz);txt(kz,284,90,'Enzyme (E)','start');
+el('circle',{cx:270,cy:108,r:6,fill:'var(--ctl)'},kz);txt(kz,284,112,'Switched-off enzyme','start');
+zS=el('g',{style:TR},kz);el('circle',{r:9,fill:'var(--comp)'},zS);
+zI=el('g',{style:TR},kz);el('rect',{x:-8,y:-8,width:16,height:16,rx:3,fill:PUR},zI);
+zP1=el('g',{style:TR},kz);el('circle',{r:5,fill:GRN},zP1);
+zP2=el('g',{style:TR},kz);el('circle',{r:5,fill:GRN},zP2);
+function zset(g,p){g.style.transform='translate('+p[0]+'px,'+p[1]+'px)';g.style.opacity=p[2]}
+var SA=[50,28,1],SH=[150,72,0],SS=[150,72,1],SN=[126,42,1],IA=[225,30,0],IS=[196,130,1],IT=[150,72,1],PH=[150,72,0],P1=[144,72,1],P2=[156,72,1],P1x=[110,12,0],P2x=[190,10,0],BL='var(--acc)',GY='var(--ctl)';
+var ZF={
+ none:[[SA,IA,PH,PH,BL,'Substrate (S) drifts toward the active site.',1500],
+  [SS,IA,PH,PH,BL,'S binds the active site, forming the enzyme-substrate complex (ES).',1700],
+  [SH,IA,P1,P2,BL,'The enzyme converts S into product (P).',1000],
+  [SH,IA,P1x,P2x,BL,'Product is released and the enzyme is free for the next substrate.',1600]],
+ non:[[SA,IS,PH,PH,GY,'This enzyme has an inhibitor (I) on a separate site, so it is switched off.',1800],
+  [SS,IS,PH,PH,GY,'Substrate still binds the active site just as well, so Km is unchanged.',1900],
+  [SS,IS,PH,PH,GY,'But a switched-off enzyme cannot make product, so the rate and Vmax drop.',2200],
+  [SA,IS,PH,PH,GY,'Substrate leaves unchanged. No product was made.',1400]],
+ comp:[[SA,IT,PH,PH,BL,'The inhibitor (I) is sitting in the active site.',1600],
+  [SN,IT,PH,PH,BL,'Substrate cannot get in because the site is taken.',1500],
+  [SA,IT,PH,PH,BL,'It has to wait. More substrate means more chances to win the site.',1500],
+  [SA,IA,PH,PH,BL,'Sometimes the inhibitor lets go...',1300],
+  [SS,IA,PH,PH,BL,'...and a substrate molecule binds the free active site.',1500],
+  [SH,IA,P1,P2,BL,'The enzyme converts S into product (P).',1000],
+  [SH,IA,P1x,P2x,BL,'Product is released. Then another inhibitor may bind again.',1600]]};
+function zstep(){var F=ZF[km],f=F[zi%F.length];zset(zS,f[0]);zset(zI,f[1]);zset(zP1,f[2]);zset(zP2,f[3]);zBody.setAttribute('fill',f[4]);document.getElementById('kstat').textContent=f[5];zi++;zt=setTimeout(zstep,RM?3500:f[6])}
+function zrestart(){clearTimeout(zt);zi=0;zstep()}
+// population
+for(var q=0;q<N;q++){(function(i){var cx=28+(i%10)*38,cy=i<10?44:104,g=el('g',{},kg),T='transition:opacity .35s,transform .35s;opacity:0;';
+ var b=el('circle',{cx:cx,cy:cy,r:13,fill:'var(--acc)'},g);
+ el('circle',{cx:cx,cy:cy-9,r:5.5,fill:'var(--card)'},g);
+ var it=el('rect',{x:cx-4.5,y:cy-13.5,width:9,height:9,rx:2,fill:PUR,style:T},g);
+ var is=el('rect',{x:cx+11,y:cy-3,width:9,height:9,rx:2,fill:PUR,style:T},g);
+ var s=el('circle',{cx:cx,cy:cy-9,r:4.5,fill:'var(--comp)',style:T+'transform:translateY(-12px)'},g);
+ var p1=el('circle',{cx:cx,cy:cy-9,r:3.3,fill:GRN,style:'opacity:0'},g),p2=el('circle',{cx:cx,cy:cy-9,r:3.3,fill:GRN,style:'opacity:0'},g);
+ en.push({b:b,s:s,it:it,is:is,p1:p1,p2:p2})})(q)}
+el('rect',{x:20,y:158,width:360,height:14,rx:7,fill:'var(--line)'},kg);
+kfill=el('rect',{x:20,y:158,width:180,height:14,rx:7,fill:'var(--comp)'},kg);
+el('line',{x1:200,x2:200,y1:154,y2:176,stroke:'var(--ink)','stroke-width':1.5},kg);
+txt(kg,200,190,'50% (half full)');txt(kg,20,190,'0%','start');txt(kg,380,190,'100% (all enzymes)','end');txt(kg,20,152,'Enzymes holding substrate','start');
+function kdraw(){var s=ks/KM,f0=s/(1+s),wb=[];
+ en.forEach(function(e,i){var off=km==='non'&&i%2===0,sb=false,ib=false;
+  e.b.setAttribute('fill',off?'var(--ctl)':'var(--acc)');
+  if(km==='comp'){var r=Math.random(),pS=s/(2+s),pI=1/(2+s);sb=r<pS;ib=!sb&&r<pS+pI}
+  else{sb=Math.random()<f0}
+  e.s.style.opacity=sb?1:0;e.s.style.transform=sb?'translateY(0)':'translateY(-12px)';
+  if(sb&&!off){wb.push(e);if(RM){e.s.setAttribute('stroke',GRN);e.s.setAttribute('stroke-width',2.5)}}else{e.s.removeAttribute('stroke')}
+  e.it.style.opacity=ib?1:0;e.is.style.opacity=off?1:0});
+ if(!RM)setTimeout(function(){wb.forEach(function(e){e.s.style.opacity=0;
+  e.p1.animate([{transform:'translate(-3px,0)',opacity:1},{transform:'translate(-9px,-26px)',opacity:0}],{duration:950,easing:'ease-out'});
+  e.p2.animate([{transform:'translate(3px,0)',opacity:1},{transform:'translate(9px,-28px)',opacity:0}],{duration:950,easing:'ease-out'})})},650)}
+function kinfo(){var s=ks/KM,f=km==='comp'?s/(2+s):s/(1+s),inh=km==='non'?10:(km==='comp'?20/(2+s):0),prod=f*(km==='non'?10:20),kapp=km==='comp'?2*KM:KM,vmx=km==='non'?50:100,m;
+ if(km==='none')m='Baseline: with no inhibitor, half of the enzymes hold substrate when [S] = Km = 10.';
+ else if(km==='non')m='Substrate binds the switched-off (grey) enzymes just as well as the others, so at [S] = 10 half of all enzymes hold substrate with or without this inhibitor. That is why Km stays 10. The grey enzymes simply cannot make product, so the rate and Vmax drop to half. Try [S] = 10 here, then switch to No inhibitor.';
+ else m='The inhibitor sits in the active site and blocks the substrate, so at [S] = 10 only about a third of the enzymes hold substrate. You need [S] = 20 to reach half, so Km rises to 20. With enough substrate it still wins the site, so Vmax stays 100.';
+ var c=[[f*20,'holding substrate'],[inh,'with inhibitor attached'],[prod,'making product']].map(function(a){return '<span style="border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--bg)"><b>'+a[0].toFixed(0)+'</b> of 20 '+a[1]+'</span>'});
+ c.push('<span style="border:1px solid var(--acc);border-radius:8px;padding:4px 10px">Vmax = <b>'+vmx+'</b>, Km = <b>'+kapp+'</b></span>');
+ document.getElementById('kchips').innerHTML=c.join('');
+ document.getElementById('ksv').textContent=ks;
+ kfill.setAttribute('width',f*360);
+ document.getElementById('kread').textContent=m}
+document.getElementById('ks').addEventListener('input',function(e){ks=parseFloat(e.target.value);kinfo();kdraw()});
+document.getElementById('kkm').addEventListener('click',function(){ks=KM;document.getElementById('ks').value=KM;kinfo();kdraw()});
+each(document.querySelectorAll('#kseg button'),function(b){b.addEventListener('click',function(){km=b.getAttribute('data-k');each(document.querySelectorAll('#kseg button'),function(x){x.classList.toggle('on',x===b)});kinfo();kdraw();zrestart()})});
+kinfo();kdraw();zrestart();if(!RM)setInterval(kdraw,1800);
+})();
+</script>
+</body>
+</html>
